@@ -1,16 +1,19 @@
-# Lipstick-draw
-女朋友想要一个口红的抽奖,就先做了一个demo
+﻿
+from flask import Flask, request, render_template, jsonify
 
 
-## 环境
-+ python3.7
-  
-## 依赖
-+ pip install flask
-  
-## 使用
-[flask1.py](https://github.com/stone0011/Lipstick-draw/blob/master/flask1.py)中
-```python
+app = Flask(__name__)
+
+app.config['SECRET_KEY'] = '00000'
+
+
+
+@app.route('/')
+def test():
+    return render_template("/kouhong.html")
+
+
+@app.route('/kouhong_json')
 def kouhong_json():
     
     data = {
@@ -21,5 +24,7 @@ def kouhong_json():
                         'Bobbibrown 4 Ruby','Bobbibrown 6 cranberry']
     }
     return jsonify(data)
-```
-更改data中的数组即可（口红对应颜色未找到，现有颜色为常见口红色随机）
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000, debug=True)

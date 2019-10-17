@@ -1,0 +1,35 @@
+ul
+{
+display:inline-block; 
+list-style-type:none;
+margin:0;
+padding:0;
+overflow:hidden;
+}
+li
+{
+    float: left;
+}
+.headtitle ul li a:link,.headtitle ul li a:visited
+{
+display:block;
+width:180px;
+font-weight:bold;
+color:#FFFFFF;
+background-color:#bebebe;
+text-align:center;
+padding:4px;
+text-decoration:none;
+text-transform:uppercase;
+}
+.headtitle ul li a:hover,.headtitle ul li a:active
+{
+background-color:#cc0000;
+}
+#footer {
+    background: #00A2EA;
+    width: 100%;
+    height: 25px;
+    position: fixed;
+    bottom: 0;
+}

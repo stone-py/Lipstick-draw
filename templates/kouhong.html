@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+
+<head>
+    <meta charset="utf-8">
+    <script src="static/js/jquery/3.3.1/jquery.min.js"></script>
+    <script src="static/js/jquery/2.2.0/jquery.countdown.min.js"></script>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+</head>
+
+<body style="height: 100%; margin: 0">
+    <div class="tip"></div>
+    <div class="reward_list"></div>
+    <div class="all">
+        <div id="countDown" class="circle">
+            <svg id="svg" class="bg" width="100%" height="100%">
+            </svg>
+        </div>
+        <div class="pointer"></div>
+    </div>
+    <script>
+        window.onload = function () {
+            initGoods();
+            setTimeout(draw(),4000);
+            
+            $('.pointer').click(function () {
+                // var girls
+                if (!isRotating) {
+                    isRotating = true;
+                    var random_deg = Math.floor(Math.random() * (3240 - 1080 + 1) + 1080);
+                    total_rotate_deg += random_deg; // total_rotate_deg是历史遗留问题，不要理会，每次旋转都是等于上面的random_deg
+                    var random_time = random_deg / 360 * 0.5; // 0.5表示一圈0.5s
+                    $('.circle').css('transition', 'all ' + random_time + 's');
+                    $('.circle').css('transform', 'rotate( ' + total_rotate_deg + 'deg)');
+                    $('.tip').text('正在抽奖......');
+                    setTimeout(function () {
+                        isRotating = false;
+                        var real_deg = (total_rotate_deg - (360 / num / 2)) % 360;
+                        var index = Math.floor(real_deg / (360 / num));
+                        var reward_index = num - index - 1;
+                        // console.log(girls)
+                        $('.tip').text('抽奖结束: ' + girls[reward_index]);
+                        // 存储这次抽中的奖品
+                        his_rewards.push(girls[reward_index]);
+                        // 显示商品
+                        var rewards_dom = '获奖历史：<br>';
+                        his_rewards.forEach(function (item, index) {
+                            rewards_dom += item + '<br>';
+                        })
+                        $('.reward_list').html(rewards_dom);
+                        // 删除转到的元素
+                        girls.splice(reward_index, 1);
+                        setTimeout(function () {
+                            draw();
+                        }, 1000)
+                    }, random_time * 1000)
+                } else {
+                    $('.tip').text('正在抽奖......');
+                }
+            })
+        }
+        var his_rewards = []; // 整个抽奖过程的礼物们
+        var isRotating = false;
+        var total_goods_num = 0;
+        var total_rotate_deg = 0;
+        var colorList = ['#ff0000', '#dc358c', '#c735dc', '#fe8330', '#ea041c', '#ff8000', '#dc4a35','#9c1728','#d6003e','#e7572e','#b83838','#dd5440'];
+        function initGoods() {
+            $.ajaxSettings.async = false;  
+            $.getJSON("kouhong_json",'',function(data){  
+                window.girls = eval(data.kouhonglist);
+                var arr = Object.keys(girls);
+                    window.len = arr.length;
+            });  
+            total_goods_num = len;
+            
+        }
+        var num;
+        function draw() {
+            var arr = Object.keys(girls);
+            total_rotate_deg = 0;
+            $('.circle').css('transition', 'all ' + 1 + 's');
+            $('.circle').css('transform', 'rotate( ' + total_rotate_deg + 'deg)');
+            $('div').remove('.line');
+            $('div').remove('.section');
+            $('#svg').empty();
+            num = arr.length;;
+            total_rotate_deg += 360 / num / 2;
+            var path_doms = '';
+            // 渲染dom
+            for (var index = 0; index < num; index++) {
+                var line_dom = '<div class="line"></div>';
+                var path_dom = '<path id="path' + (index + 1) + '" class="path" style="fill:' + colorList[index] + '"></path>';
+                var section_dom = '<div class="section">\n' +
+                    '        <span class="s_text">' + girls[index] + '</span>\n' +
+                    '    </div>';
+                
+                $('#countDown').append(line_dom);
+                $('#countDown').append(section_dom);
+                path_doms += path_dom;
+            }
+            document.getElementById('svg').innerHTML = path_doms;
+            var radius = 400;
+            // 定义pointer的位置
+            $('.pointer').css('top', (radius / 2 - 110) + 'px');
+            $('.pointer').css('left', (radius / 2 - 60 + 8) + 'px'); // 8是边框
+            $('.circle').css('width', radius + 'px');
+            $('.circle').css('height', radius + 'px');
+            var section_width = Math.sin(2 * Math.PI / 360 * 180 / num) * (radius / 2) * 2;
+            var section_height = Math.cos(2 * Math.PI / 360 * 180 / num) * (radius / 2);  // 不是文字矩形的高度了，这里忘了改名字
+            $('.section').css('width', section_width);
+            $('.section').css('height', radius / 2);
+            var left = radius / 2 - section_width / 2;
+            var top_value = radius / 2 - section_height;
+            var line_left = radius / 2 - 1; // 因为line的宽度是2px
+            $('.section').css('left', left + 'px');
+            // $('.section').css('top', top_value + 'px');
+            $('.s_text').css('margin-top', section_height * 0.05 + 'px');
+            // 确定分割线高度 位置
+            $('.line').css('height', radius / 2);
+            $('.line').css('left', line_left + 'px');
+            for (var index = 0; index < num; index++) {
+                $('.line').eq(index).css('transform', 'rotate(' + (360 / num * index - 180 / num) + 'deg)');
+                $('.line').eq(index).css('transform-origin', '50% 100%');
+                $('.section').eq(index).css('transform', 'rotate(' + 360 / num * index + 'deg)');
+                $('.section').eq(index).css('transform-origin', section_width / 2 + 'px ' + radius / 2 + 'px');
+                // path
+                $('#path' + (index + 1)).css('transform-origin', (radius / 2) + 'px ' + (radius / 2) + 'px');
+                $('#path' + (index + 1)).attr('d', 'M' + left + ',' + top_value + ' A' + radius / 2 + ' ' + radius / 2 + ' 0 0 1 ' + (left + section_width) + ' ' + top_value + ' L' + radius / 2 + ' ' + radius / 2 + '');
+                $('#path' + (index + 1)).css('transform', 'rotate(' + 360 / num * index + 'deg)');
+            }
+            if (len === 1) {
+                $('#countDown').css('background-color', colorList[0]);
+                $('.section').css('width', radius);
+                $('.section').css('left', 0);
+                $('div').remove('.line');
+                $('.s_text').css('top', '20%');
+            }
+        }
+    </script>
+    <style>
+        .circle {
+            will-change: transform;
+            /*animation: rotate 7s infinite linear;*/
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 99;
+            background: #ffffff;
+            border: #d4002c 8px solid;
+            border-radius: 50%;
+        }
+
+        .section {
+            position: absolute;
+            color: #ffffff;
+            font-size: 18px;
+        }
+
+        .s_text {
+            text-align: center;
+            width: 100%;
+            top: 10%;
+            position: absolute;
+        }
+
+        .line {
+            background: #d60e37;
+            width: 2px;
+            position: absolute;
+        }
+
+        .bg {
+            position: absolute;
+        }
+
+        .path {}
+
+        .pointer {
+            position: absolute;
+            width: 120px;
+            height: 180px;
+            z-index: 100;
+            overflow: hidden;
+            display: block;
+            cursor: pointer;
+            background-size: cover;
+            background-image: url('static/button.png');
+            background-repeat: no-repeat;
+        }
+
+        .all {
+            position: absolute;
+            top: 20%;
+            left: 40%;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .tip {
+            color: #000;
+            font-size: 16px;
+            position: absolute;
+            left: 10%;
+            top: 40%;
+        }
+
+        .reward_list {
+            color: #666666;
+            font-size: 15px;
+            position: absolute;
+            left: 10%;
+            top: 50%;
+        }
+    </style>
+</body>
+
+</html>
